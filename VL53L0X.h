@@ -54,6 +54,7 @@
  */
 #define IDENTIFICATION_MODEL_ID                 0x000
 
+#define USE_I2C_2V8            1
 
 #define STATUS_OK              0x00
 #define STATUS_FAIL            0x01
@@ -302,7 +303,6 @@ public:
         _my_device.comms_type = 1; // VL53L0X_COMMS_I2C
         _my_device.comms_speed_khz = 100;
         _device = &_my_device;
-        _expgpio0 = NULL;
         if (pin_gpio1 != NC) {
             _gpio1Int = new InterruptIn(pin_gpio1);
         } else {
@@ -330,10 +330,6 @@ public:
     {
         if (_gpio0) {
             *_gpio0 = 1;
-        } else {
-            if (_expgpio0) {
-                *_expgpio0 = 1;
-            }
         }
         wait_ms(10);
     }
@@ -347,10 +343,6 @@ public:
     {
         if (_gpio0) {
             *_gpio0 = 0;
-        } else {
-            if (_expgpio0) {
-                *_expgpio0 = 0;
-            }
         }
         wait_ms(10);
     }
@@ -589,7 +581,7 @@ public:
      *
      * @brief Get the 53L0 device
      *
-     * To be called to retrive the internal device descriptor to allow usage of 
+     * To be called to retrive the internal device descriptor to allow usage of
      * low level API having device as parameter. To be called  after set_device_address()
      * (if any).
      *
@@ -607,7 +599,7 @@ public:
 {
    *dev = _device;
    return VL53L0X_ERROR_NONE;
-}             
+}
 
     /**
      *

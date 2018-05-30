@@ -1552,7 +1552,7 @@ VL53L0X_Error VL53L0X::VL53L0X_data_init(VL53L0X_DEV dev)
     /* by default the I2C is running at 1V8 if you want to change it you
      * need to include this define at compilation level. */
 #ifdef USE_I2C_2V8
-    Status = VL53L0X_UpdateByte(Dev,
+    status = VL53L0X_update_byte(dev,
                                 VL53L0X_REG_VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
                                 0xFE,
                                 0x01);
@@ -5122,6 +5122,7 @@ VL53L0X_Error VL53L0X::VL53L0X_update_byte(VL53L0X_DEV Dev, uint8_t index, uint8
 
     /* read data direct onto buffer */
     status = VL53L0X_i2c_read(Dev->I2cDevAddr, index, &buffer, 1);
+
     if (!status) {
         buffer = (buffer & and_data) | or_data;
         status = VL53L0X_i2c_write(Dev->I2cDevAddr, index, &buffer, (uint8_t)1);
@@ -5138,8 +5139,8 @@ VL53L0X_Error VL53L0X::VL53L0X_i2c_write(uint8_t DeviceAddr, uint8_t RegisterAdd
     if(!_dev_i2c->write(DeviceAddr) || !_dev_i2c->write(RegisterAddr))
         return -1;
 
-    for (unsigned i = 0; i < NumByteToRead; i++) {
-        ret += _i2c.write(static_cast<const char*>(p_data)[i]);
+    for (unsigned i = 0; i < NumByteToWrite; i++) {
+        _dev_i2c->write(p_data[i]);
     }
     _dev_i2c->stop();
 
@@ -5154,7 +5155,7 @@ VL53L0X_Error VL53L0X::VL53L0X_i2c_read(uint8_t DeviceAddr, uint8_t RegisterAddr
 {
     int ret;
 
-    _dev_i2c->write(DeviceAddr, (char *)&RegisterAddr, 1, 1);
+    _dev_i2c->write(DeviceAddr, reinterpret_cast<char *>(&RegisterAddr), 1, true);
     ret = _dev_i2c->read(DeviceAddr, (char *)p_data, NumByteToRead);
 
     if (ret) {
@@ -5169,6 +5170,7 @@ int VL53L0X::read_id(uint8_t *id)
     uint16_t rl_id = 0;
 
     status = VL53L0X_read_word(_device, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &rl_id);
+
     if (rl_id == 0xEEAA) {
         return status;
     }
@@ -5267,7 +5269,7 @@ int VL53L0X::init_sensor(uint8_t new_addr)
                 return status;
             }
         } else {
-            printf("Invalid new address!\n\r");
+            printf("Use default address!\n\r");
             return VL53L0X_ERROR_INVALID_PARAMS;
         }
     }

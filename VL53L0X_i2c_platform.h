@@ -53,7 +53,7 @@ typedef unsigned char bool_t;
 
 
 #define	   I2C_DEVICE         0x01
-#define	   SPI                0x00
+#define	   SPI_DEVICE         0x00
 
 #define    COMMS_BUFFER_SIZE    64  // MUST be the same size as the SV task buffer
 

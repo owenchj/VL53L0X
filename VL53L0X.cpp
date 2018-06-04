@@ -2221,7 +2221,6 @@ VL53L0X_Error VL53L0X::enable_ref_spads(VL53L0X_DEV dev,
     uint32_t i;
     int32_t next_good_spad = offset;
     uint32_t current_spad;
-    uint8_t check_spad_array[6];
 
     /*
      * This function takes in a spad array which may or may not have SPADS
@@ -3511,7 +3510,6 @@ VL53L0X_Error VL53L0X::VL53L0X_get_ranging_measurement_data(VL53L0X_DEV dev,
     uint16_t tmpuint16;
     uint16_t xtalk_range_milli_meter;
     uint16_t linearity_corrective_gain;
-    uint8_t localBuffer[12];
     VL53L0X_RangingMeasurementData_t last_range_data_buffer;
 
     LOG_FUNCTION_START("");
@@ -5054,7 +5052,6 @@ VL53L0X_Error VL53L0X::VL53L0X_write_byte(VL53L0X_DEV Dev, uint8_t index, uint8_
 VL53L0X_Error VL53L0X::VL53L0X_write_word(VL53L0X_DEV dev, uint8_t index, uint16_t data)
 {
     int  status;
-    uint8_t buffer[2];
 
     buffer[0] = data >> 8;
     buffer[1] = data & 0x00FF;
@@ -5065,7 +5062,6 @@ VL53L0X_Error VL53L0X::VL53L0X_write_word(VL53L0X_DEV dev, uint8_t index, uint16
 VL53L0X_Error VL53L0X::VL53L0X_write_dword(VL53L0X_DEV Dev, uint8_t index, uint32_t data)
 {
     int  status;
-    uint8_t buffer[4];
 
     buffer[0] = (data >> 24) & 0xFF;
     buffer[1] = (data >> 16) & 0xFF;
@@ -5080,19 +5076,17 @@ VL53L0X_Error VL53L0X::VL53L0X_read_byte(VL53L0X_DEV Dev, uint8_t index, uint8_t
 {
     int  status;
 
-    status = VL53L0X_i2c_read(Dev->I2cDevAddr, index, p_data, 1);
+    status = VL53L0X_i2c_read(Dev->I2cDevAddr, index, buffer, 1);
 
-    if (status) {
-        return -1;
+    if (!status) {
+        *p_data = buffer[0];
     }
-
-    return 0;
+    return status;
 }
 
 VL53L0X_Error VL53L0X::VL53L0X_read_word(VL53L0X_DEV Dev, uint8_t index, uint16_t *p_data)
 {
     int  status;
-    uint8_t buffer[2] = {0, 0};
 
     status = VL53L0X_i2c_read(Dev->I2cDevAddr, index, buffer, 2);
     if (!status) {
@@ -5105,7 +5099,6 @@ VL53L0X_Error VL53L0X::VL53L0X_read_word(VL53L0X_DEV Dev, uint8_t index, uint16_
 VL53L0X_Error VL53L0X::VL53L0X_read_dword(VL53L0X_DEV Dev, uint8_t index, uint32_t *p_data)
 {
     int status;
-    uint8_t buffer[4] = {0, 0, 0, 0};
 
     status = VL53L0X_i2c_read(Dev->I2cDevAddr, index, buffer, 4);
     if (!status) {
@@ -5118,14 +5111,13 @@ VL53L0X_Error VL53L0X::VL53L0X_read_dword(VL53L0X_DEV Dev, uint8_t index, uint32
 VL53L0X_Error VL53L0X::VL53L0X_update_byte(VL53L0X_DEV Dev, uint8_t index, uint8_t and_data, uint8_t or_data)
 {
     int  status;
-    uint8_t buffer = 0;
 
     /* read data direct onto buffer */
-    status = VL53L0X_i2c_read(Dev->I2cDevAddr, index, &buffer, 1);
+    status = VL53L0X_i2c_read(Dev->I2cDevAddr, index, buffer, 1);
 
     if (!status) {
-        buffer = (buffer & and_data) | or_data;
-        status = VL53L0X_i2c_write(Dev->I2cDevAddr, index, &buffer, (uint8_t)1);
+        buffer[0] = (buffer[0] & and_data) | or_data;
+        status = VL53L0X_i2c_write(Dev->I2cDevAddr, index, buffer, (uint8_t)1);
     }
     return status;
 }
@@ -5155,7 +5147,8 @@ VL53L0X_Error VL53L0X::VL53L0X_i2c_read(uint8_t DeviceAddr, uint8_t RegisterAddr
 {
     int ret;
 
-    _dev_i2c->write(DeviceAddr, reinterpret_cast<char *>(&RegisterAddr), 1, true);
+    reg_addr = RegisterAddr;
+    _dev_i2c->write(DeviceAddr, (char *)&reg_addr, 1, true);
     ret = _dev_i2c->read(DeviceAddr, (char *)p_data, NumByteToRead);
 
     if (ret) {

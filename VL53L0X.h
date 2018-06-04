@@ -527,6 +527,7 @@ public:
         VL53L0X_RangingMeasurementData_t p_ranging_measurement_data;
 
         status = start_measurement(range_single_shot_polling, NULL);
+
         if (!status) {
             status = get_measurement(range_single_shot_polling, &p_ranging_measurement_data);
         }
@@ -2758,6 +2759,12 @@ private:
     /* Device data */
     VL53L0X_Dev_t _my_device;
     VL53L0X_DEV _device;
+
+    uint8_t reg_addr;
+    uint8_t buffer[4];
+    uint8_t localBuffer[12];
+    uint8_t check_spad_array[6];
+
 };
 
 

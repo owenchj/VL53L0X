@@ -47,9 +47,9 @@ extern "C" {
  *
  */
 
-#ifndef bool_t
-typedef unsigned char bool_t;
-#endif
+/* #ifndef bool_t */
+/* typedef unsigned char bool_t; */
+/* #endif */
 
 
 #define	   I2C_DEVICE         0x01
